@@ -8,9 +8,13 @@ var cors = require("cors");
 var routes = require("./app/routes/routes");
 var config = require("./config/main");
 
+
+//Load Env variables
+require('dotenv').load({path:'.env'});
+
 app.use(cors());
 
-var port = 8080;
+var port = process.env.PORT || 8080;
 
 app.use(bodyParser.urlencoded({ extended : false }));
 app.use(bodyParser.json());
