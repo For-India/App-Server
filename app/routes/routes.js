@@ -19,6 +19,9 @@ user.post('/signup', userController.signup );
 // Authenticate the user and get a JSON Web Token to include in the header of future requests.
 user.post('/login', userController.login);
 
+// Verify registered users
+user.get('/verify/:token', userController.verify);
+
 // Protect dashboard route with JWT
 user.get('/dashboard', passport.authenticate('jwt', { session: false }), userController.dashboard);
 

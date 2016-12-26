@@ -55,6 +55,13 @@ var UserSchema = new mongoose.Schema({
   mobileNo: {
     type:SchemaTypes.Long,
     required: true
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  verificationToken: String,
+  isVerified: {
+    type: Boolean,
+    default: false
   }
 });
 
