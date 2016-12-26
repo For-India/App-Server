@@ -1,4 +1,4 @@
-var appointmentService = require("../../config/appointmentService");
+var userController = require("../controllers/userController");
 var express = require("express");
 
 module.exports = function(app,passport){
@@ -9,19 +9,17 @@ app.get('/', function(req,res){
 });
         
     
-// API for Online Appointment
-var oa = express.Router();
-app.use('/oa', oa);
+// API for Users
+var user = express.Router();
+app.use('/user', user);
 
 // Signup
-oa.post('/signup', appointmentService.signup );
+user.post('/signup', userController.signup );
 
 // Authenticate the user and get a JSON Web Token to include in the header of future requests.
-oa.post('/login', appointmentService.login);
+user.post('/login', userController.login);
 
 // Protect dashboard route with JWT
-oa.get('/dashboard', passport.authenticate('jwt', { session: false }), appointmentService.dashboard);
-
-
+user.get('/dashboard', passport.authenticate('jwt', { session: false }), userController.dashboard);
 
 };

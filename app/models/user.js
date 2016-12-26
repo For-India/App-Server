@@ -1,8 +1,25 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
+require('mongoose-long')(mongoose);
+var SchemaTypes = mongoose.Schema.Types;
 
 var UserSchema = new mongoose.Schema({
-  name: String,
+  firstname: {
+    type: String,
+    required: true
+  },
+  lastname: {
+    type: String,
+    required: true
+  },
+  gender: {
+    type: String,
+    required: true
+  },
+  dob: {
+    type: String,
+    required: true
+  },
   email: {
     type: String,
     lowercase: true,
@@ -13,10 +30,31 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: {
-    type: String,
-    enum: ['Citizen', 'Minister', 'Admin'],
-    default: 'Citizen'
+  aadharNo: {
+    type: SchemaTypes.Long,
+    required: true
+  },
+  resedentialAddress: {
+    address: {
+      type: String,
+      required: true
+    }, 
+    city: {
+      type: String,
+      required: true
+    }, 
+    state: {
+      type: String,
+      required: true
+    },
+    pincode: {
+      type: Number,
+      required: true
+    }
+  },
+  mobileNo: {
+    type:SchemaTypes.Long,
+    required: true
   }
 });
 
