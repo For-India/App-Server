@@ -1,9 +1,8 @@
-var User = require("../models/oa-user");
+var User = require("../app/models/oa-user");
 var jwt = require("jsonwebtoken");
-var config = require("../../config/main");
-var Session = require("../models/oa-session");
+var config = require("../config/main");
 
-module.signup = function(req,res){
+exports.signup = function(req,res){
 if(!req.body.email || !req.body.password || !req.body.name) {
     res.json({ success: false, message: 'Please enter all the details.' });
   } else {
@@ -25,7 +24,7 @@ if(!req.body.email || !req.body.password || !req.body.name) {
 };
 
 
-module.login = function(req, res) {
+exports.login = function(req, res) {
   User.findOne({
     email: req.body.email
   }, function(err, user) {
@@ -52,6 +51,6 @@ module.login = function(req, res) {
   });
 };
 
-module.dashboard = function(req, res) {
+exports.dashboard = function(req, res) {
   res.json(req.user._id);
 };
