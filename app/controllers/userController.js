@@ -6,6 +6,7 @@ var async = require("async");
 var crypto = require("crypto");
 var nodemailer = require("nodemailer");
 var mg = require('nodemailer-mailgun-transport');
+var path = require("path");
 
 //Function to handle Singup route
 exports.signup = function(req,res) {
@@ -124,6 +125,126 @@ exports.verify = function(req, res){
        }
       });
       res.json({ success: true, message: "User verified Successfully."});
+  });
+};
+
+//Function to handle forgot password
+exports.forgot = function(req,res) {
+  async.waterfall([
+    function(done) {
+      crypto.randomBytes(20, function(err, buf) {
+        var token = buf.toString('hex');
+        done(err, token);
+      });
+    },
+    function(token, done) {
+      User.findOne({ email: req.body.email }, function(err, user) {
+        if(!req.body.email){
+          res.send({ status: false, message: "Please provide an email ID"});
+        }
+        else if (!user) {
+          res.send({ status: false, message: "User not found."});
+        }
+
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        user.save(function(err) {
+          if(err){
+            res.send({ status: false, message: "User not found"});
+          }
+          done(err, token, user);
+        });
+      });
+    },
+    function(token, user, done) {
+      var auth = {
+          auth: {
+            api_key: 'key-faa7974bda757edaf7a0b94de860c06b',
+            domain: 'sandbox1f29f50c71f24689ac0e16d17df30acf.mailgun.org'
+          }
+        }
+      var nodemailerMailgun = nodemailer.createTransport(mg(auth));
+      nodemailerMailgun.sendMail({
+          from: 'NoReply <admin@forindia.com> ',
+          to: user.email,
+          subject: 'Passoword reset - ForIndia',
+          text: 'You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n' +
+          'Please click on the following link, or paste this into your browser to complete the process:\n\n' +
+          'http://' + req.headers.host + '/user/reset/' + token + '\n\n' +
+          'If you did not request this, please ignore this email and your password will remain unchanged.\n'
+        }, function (err, info) {
+          if (err) {
+            res.json({ success: false, message: 'Internal server error.' });
+          }
+          else {
+            res.json({ success: true, message: 'Reset email successfully sent.' });
+          }
+        });
+    }
+  ], function(err) {
+      if (error) {
+         res.json({ success: false, message: 'Internal server error.' });
+      }
+  });
+};
+
+//Function to render reset page
+exports.getReset = function(req,res){
+  User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
+    if (!user) {
+      req.flash('error', 'Password reset token is invalid or has expired.');
+      return res.redirect('/forgot');
+    }
+    res.sendFile(path.join(__dirname+'../../../public/reset.html'));
+  });
+};
+
+//Function to reset password
+exports.postReset = function(req,res){
+  async.waterfall([
+    function(done) {
+      User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: Date.now() } }, function(err, user) {
+        if (!user) {
+          res.send({ status: false, message: "Password reset token is invalid or expired"});
+        }
+
+        user.password = req.body.password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        user.save(function(err) {
+          if(err){
+            res.send({ status: false, message: "User not found"});
+          }
+          done(err, user);
+        });
+      });
+    },
+    function(user, done) {
+      var auth = {
+          auth: {
+            api_key: 'key-faa7974bda757edaf7a0b94de860c06b',
+            domain: 'sandbox1f29f50c71f24689ac0e16d17df30acf.mailgun.org'
+          }
+        }
+      var nodemailerMailgun = nodemailer.createTransport(mg(auth));
+      nodemailerMailgun.sendMail({
+          from: 'NoReply <admin@forindia.com> ',
+          to: user.email,
+          subject: 'Your password has been changed - ForIndia',
+          text: 'Hello,\n\n' +
+           'This is a confirmation that the password for your account ' + user.email + ' has just been changed.\n'
+        }, function (err, info) {
+          if (err) {
+            res.json({ success: false, message: 'Internal server error.' });
+          }
+          else {
+            res.json({ success: true, message: 'Success! Your password has been changed.' });
+          }
+        });
+    }
+  ], function(err) {
+    res.json({ success: false, message: 'Internal server error.' });
   });
 };
 

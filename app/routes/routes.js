@@ -22,6 +22,16 @@ user.post('/login', userController.login);
 // Verify registered users
 user.get('/verify/:token', userController.verify);
 
+// Forgot password
+user.post('/forgot', userController.forgot);
+
+// Reset password - render page
+user.get('/reset/:token', userController.getReset);
+
+// Reset password
+user.post('/reset/:token', userController.postReset);
+
+
 // Protect dashboard route with JWT
 user.get('/dashboard', passport.authenticate('jwt', { session: false }), userController.dashboard);
 
